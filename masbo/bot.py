@@ -27,13 +27,18 @@ class Bot:
     time_mean: float = 3600
     time_var: float = 0
 
-    def __call__(self):
+    def __post_init__(self) --> None:
+        assert self.mean_time_interval > 1000
+
+    def __call__(self) -> float:
         res = self._code(self)
-        if self.autopost:
+        if self.autopost and self.enable:
             self.mastodon.status_post(res[:self.max_chars])
 
         if self.debug and res is not None:
             print(res)
+
+        return self._distrib()
 
     @functools.cached_property
     def mastodon(self) -> Mastodon:
@@ -52,9 +57,3 @@ class Bot:
     @functools.cached_property
     def _distrib(self) -> Distribution:
         return Distribution.get(self.time_distribution)(self.time_mean, self.time_var)
-
-    def distrib(self) -> float:
-        return self._distrib()
-
-    def __post_init__(self) --> None:
-        assert self.mean_time_interval > 1000
