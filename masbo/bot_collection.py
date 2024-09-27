@@ -1,7 +1,7 @@
 import heapq
 import json
 import time
-from . bot_runner import BotRunner
+from . bot import Bot
 
 
 class BotCollection:
@@ -15,7 +15,7 @@ class BotCollection:
         for name, desc in self.descs.items():
             desc['access_token'] = tokens[name]
 
-        self.runners = {k: BotRunner.create(**v) for k, v in bots.items()}
+        self.runners = {k: Bot.create(**v) for k, v in bots.items()}
 
     def run(self) -> None:
         heap = [(time.time(), str(r.desc), r) for r in self.runners]

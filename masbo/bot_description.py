@@ -1,6 +1,11 @@
 import dataclasses as dc
 from .distribution import Distribution
 import functools
+from mastodon import Mastodon
+import typing as t
+
+if t.TYPE_CHECKING:
+    from . bot import Bot
 
 ENABLE_SEND = not True
 
@@ -24,9 +29,28 @@ class BotDescription:
         assert self.mean_time_interval > 1000
 
     @functools.cached_property
+    def bot(self) -> 'Bot':
+        from . import bots
+
+        return getattr(bots, self.bot_name.capitalize())(self)
+
+    @functools.cached_property
     def distrib(self) -> Distribution:
         return Distribution.create(
             self.time_distribution,
             self.time_mean,
             self.time_var,
         )
+
+    @functools.cached_property
+    def mastodon(self) -> Mastodon:
+        return Mastodon(
+            access_token = self.access_token,
+            api_base_url = self.api_base_url,
+        )
+
+    def post(self, s: str) -> None:
+        if self.autopost and self.enable:
+            self.mastodon.status_post(s)
+        if self.desc.debug:
+            print(s)
