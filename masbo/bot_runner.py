@@ -12,11 +12,11 @@ ENABLE_SEND = not True
 
 
 @dc.dataclass
-class Bot:
+class BotRunner:
     access_token: str = ''
     api_base_url: str = 'https://botsin.space/'
     autopost: str = True
-    code_path: str = ''
+    bot_path: str = ''
     debug: bool = True
     enable: bool = ENABLE_SEND,
     kwargs: dict[str, str] = dc.field(default_factory=dict)
@@ -52,11 +52,11 @@ class Bot:
         )
 
     @functools.cached_property
-    def _code(self) -> t.Callable:
+    def _bot(self) -> t.Callable:
         path, _, name = self.code_path.rpartition('.')
         assert path and name, self.code_path
 
-        return getattr(__import__(path), name)
+        return getattr(__import__(path), name)(self)
 
     @functools.cached_property
     def _distrib(self) -> Distribution:
