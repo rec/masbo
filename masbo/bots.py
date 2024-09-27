@@ -1,16 +1,26 @@
-import dataclasses as dc
+import heapq
 from .bot import Bot
+import json
 
 
-@dc.dataclass
 class Bots:
-    bots: list[Bot]
+    def __init__(self, bots: dict[str, Bot]) -> None:
+        self._bot_heap[:] = ((0, str(b), b) for b in bots)
 
-    _bot_heap: list[tuple[float, str, Bot]] = dc.field(default_factory=list)
+    def __call__(self) -> float:
+        time, key, bot = self._bot_heap[0]
+        time += bot()
+        heapq.heapreplace(self._bot_heap, (time, key, bot))
+        return time
 
-    def play_next(self, time: float) -> float:
-        if not self._bot_heap:
-            self._bot_heap.extend((time, str(b), b) for b in self.bots)
 
-        _, sbot, bot = self._bot_heap.pop()
-        bot()
+def read(bots_file: str, tokens_file: str) -> Bots:
+    bots = json.load(open(bots_file))
+    tokens = json.load(open(tokens_file))
+
+    assert isinstance(bots, dict) and isinstance(tokens, dict)
+    assert sorted(bots) == sorted(tokens)
+    for name, bot in bots.items():
+        bot.access_token = tokens[name]
+
+    return Bots(bots)
