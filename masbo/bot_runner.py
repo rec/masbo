@@ -1,69 +1,43 @@
-from .distribution import Distribution
+from . bot_description import BotDescription
 from mastodon import Mastodon
-import dataclasses as dc
-import functools
 import heapq
 import json
 import time
 import traceback
 import typing as t
 
-ENABLE_SEND = not True
 
-
-@dc.dataclass
 class BotRunner:
-    access_token: str = ''
-    api_base_url: str = 'https://botsin.space/'
-    autopost: str = True
-    bot_path: str = ''
-    debug: bool = True
-    enable: bool = ENABLE_SEND,
-    kwargs: dict[str, str] = dc.field(default_factory=dict)
-    max_chars: int = 500
-    tags: list[str] = dc.field(default_factory=list)
-    time_distribution: str = 'constant'
-    time_mean: float = 3600
-    time_var: float = 0
+    def __init__(self, desc: BotDescription):
+        from . import bots
 
-    def __post_init__(self) -> None:
-        assert self.mean_time_interval > 1000
-        tags = ' '.join('#' + t.lstrip('#') for t in self.tags)
-        self._tags = '\n\n' + tags if tags else tags
-        self.max_body = self.max_chars - len(self._tags)
+        self.bot = getattr(bots, self.desc.bot_name.capitalize())(self)
+        self.desc = desc
+
+        tags = desc.tags or self.bot.tags
+        tags = ' '.join('#' + t.lstrip('#') for t in tags)
+        self.tags = '\n\n' + tags if tags else tags
+
+        self.max_body = desc.max_chars - len(self.tags)
+        self.mastodon = Mastodon(
+            access_token = desc.access_token,
+            api_base_url = desc.api_base_url,
+        )
 
     def __call__(self) -> float:
         try:
-            res = self._code(self)
-            if self.autopost and self.enable:
-                self.mastodon.status_post(res[:self.max_body] + self._tags)
-            if self.debug and res is not None:
+            res = self._bot()
+            if self.desc.autopost and self.desc.enable:
+                self.mastodon.status_post(res[:self.max_body] + self.tags)
+            if self.desc.debug and res is not None:
                 print(res)
         except Exception:
             traceback.print_exc()
 
-        return self._distrib()
-
-    @functools.cached_property
-    def mastodon(self) -> Mastodon:
-        return Mastodon(
-            access_token = self.access_token,
-            api_base_url = 'https://botsin.space/'
-        )
-
-    @functools.cached_property
-    def _bot(self) -> t.Callable:
-        path, _, name = self.code_path.rpartition('.')
-        assert path and name, self.code_path
-
-        return getattr(__import__(path), name)(self)
-
-    @functools.cached_property
-    def _distrib(self) -> Distribution:
-        return Distribution.get(self.time_distribution)(self.time_mean, self.time_var)
+        return self.desc.distrib()
 
 
-def run(bots: dict[str, Bot]):
+def run(bots: t.Sequence[BotRunner]):
     heap = [(time.time(), str(b), b) for b in bots]
 
     while True:
@@ -73,7 +47,7 @@ def run(bots: dict[str, Bot]):
             time.sleep(next_event)
 
 
-def read(bots_file: str, tokens_file: str) -> dict[str, Bot]:
+def read(bots_file: str, tokens_file: str) -> dict[str, t.Any]:
     bots = json.load(open(bots_file))
     tokens = json.load(open(tokens_file))
 

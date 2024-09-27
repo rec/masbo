@@ -11,6 +11,14 @@ class Distribution:
     def __call__(self) -> float:
         raise NotImplementedError
 
+    @staticmethod
+    def create(name: str, mean: float, var: float) -> 'Distribution':
+        assert name and not name.startswith('_')
+        name = name.capitalize()
+        dists = [v for k, v in vars(Distribution) if k.lower().startswith(name)]
+        assert len(dists) == 1, str(dists)
+        return dists[0]
+
 
 class Distributions:
     class Constant(Distribution):
@@ -24,11 +32,3 @@ class Distributions:
     class Poisson(Distribution):
         def __call__(self) -> float:
             return -math.log(1 - random.random()) * self.mean
-
-
-def create(name: str, mean: float, var: float) -> Distribution:
-    assert name and not name.startswith('_')
-    name = name.capitalize()
-    dists = [v for k, v in vars(Distributions) if k.lower().startswith(name)]
-    assert len(dists) == 1, str(dists)
-    return dists[0]
