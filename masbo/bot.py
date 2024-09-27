@@ -5,6 +5,7 @@ import functools
 import heapq
 import json
 import time
+import traceback
 import typing as t
 
 ENABLE_SEND = not True
@@ -29,15 +30,17 @@ class Bot:
         assert self.mean_time_interval > 1000
         tags = ' '.join('#' + t.lstrip('#') for t in self.tags)
         self._tags = '\n' + tags if tags else tags
-        self._max_body = self.max_chars - len(self._tags)
+        self.max_body = self.max_chars - len(self._tags)
 
     def __call__(self) -> float:
-        res = self._code(self)
-        if self.autopost and self.enable:
-            self.mastodon.status_post(res[:self._max_body] + self._tags)
-
-        if self.debug and res is not None:
-            print(res)
+        try:
+            res = self._code(self)
+            if self.autopost and self.enable:
+                self.mastodon.status_post(res[:self.max_body] + self._tags)
+            if self.debug and res is not None:
+                print(res)
+        except Exception:
+            traceback.print_exc()
 
         return self._distrib()
 
