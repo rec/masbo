@@ -1,4 +1,6 @@
 import dataclasses as dc
+import math
+import random
 
 
 @dc.dataclass
@@ -7,7 +9,7 @@ class Distribution:
     var: float
 
     def __call__(self) -> float:
-        raise Unimplemented
+        raise NotImplementedError
 
 
 class Distributions:
@@ -21,7 +23,7 @@ class Distributions:
 
     class Poisson(Distribution):
         def __call__(self) -> float:
-            return -math.log(1 - random.random()) * mean
+            return -math.log(1 - random.random()) * self.mean
 
 
 def create(name: str, mean: float, var: float) -> Distribution:

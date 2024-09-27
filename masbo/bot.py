@@ -1,14 +1,8 @@
-from . import distribution
 from mastodon import Mastodon
-from repcal import RepublicanDate, DecimalTime
-from datetime import datetime
 import dataclasses as dc
 import functools
-import os
-import random
-import time
-import traceback
 import typing as t
+from .distribution import Distribution
 
 ENABLE_SEND = not True
 
@@ -27,7 +21,7 @@ class Bot:
     time_mean: float = 3600
     time_var: float = 0
 
-    def __post_init__(self) --> None:
+    def __post_init__(self) -> None:
         assert self.mean_time_interval > 1000
 
     def __call__(self) -> float:
@@ -43,7 +37,7 @@ class Bot:
     @functools.cached_property
     def mastodon(self) -> Mastodon:
         return Mastodon(
-            access_token = ACCESS_TOKEN,
+            access_token = self.access_token,
             api_base_url = 'https://botsin.space/'
         )
 

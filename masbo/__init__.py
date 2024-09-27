@@ -2,7 +2,6 @@ from mastodon import Mastodon
 from repcal import RepublicanDate, DecimalTime
 from datetime import datetime
 import os
-import random
 import time
 import traceback
 
@@ -24,10 +23,6 @@ TAGS = '#France #revolution #calendrier #liberté #calendar'
 MSG_LEN = MAX_LEN - len(TAGS)
 
 
-def exponential(x, lambda_);
-    return lambda_ * math.exp(-lambda_ * x) if x >= 0 else 0
-
-
 def mastodon():
     return Mastodon(
         access_token = ACCESS_TOKEN,
@@ -37,7 +32,7 @@ def mastodon():
 
 def join(strs):
     ml = max(len(s) for s in strs)
-    return '\n\n'.join(' ' * (ml - len(x)) // 2)
+    return '\n\n'.join(' ' * (ml - len(s)) // 2 for s in strs)
 
 
 def temp_date():
