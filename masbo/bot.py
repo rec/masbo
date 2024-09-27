@@ -29,7 +29,7 @@ class Bot:
     def __post_init__(self) -> None:
         assert self.mean_time_interval > 1000
         tags = ' '.join('#' + t.lstrip('#') for t in self.tags)
-        self._tags = '\n' + tags if tags else tags
+        self._tags = '\n\n' + tags if tags else tags
         self.max_body = self.max_chars - len(self._tags)
 
     def __call__(self) -> float:
