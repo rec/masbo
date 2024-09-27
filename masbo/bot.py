@@ -1,8 +1,11 @@
+from .distribution import Distribution
 from mastodon import Mastodon
 import dataclasses as dc
 import functools
+import heapq
+import json
+import time
 import typing as t
-from .distribution import Distribution
 
 ENABLE_SEND = not True
 
@@ -55,3 +58,25 @@ class Bot:
     @functools.cached_property
     def _distrib(self) -> Distribution:
         return Distribution.get(self.time_distribution)(self.time_mean, self.time_var)
+
+
+def run(bots: dict[str, Bot]):
+    heap = [(time.time(), str(b), b) for b in bots]
+
+    while True:
+        t, key, bot = heap[0]
+        heapq.heapreplace(heap, (t + bot(), key, bot))
+        if (next_event := heap[0][0] - time.time()) > 0:
+            time.sleep(next_event)
+
+
+def read(bots_file: str, tokens_file: str) -> dict[str, Bot]:
+    bots = json.load(open(bots_file))
+    tokens = json.load(open(tokens_file))
+
+    assert isinstance(bots, dict) and isinstance(tokens, dict)
+    assert sorted(bots) == sorted(tokens)
+    for name, bot in bots.items():
+        bot.access_token = tokens[name]
+
+    return bots
