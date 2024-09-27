@@ -1,0 +1,2 @@
+# masbo
+Mastodon multibot
