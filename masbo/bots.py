@@ -21,8 +21,8 @@ class Revolution(Bot):
     tags = 'France', 'revolution', 'calendrier', 'liberté', 'calendar'
 
     def __call__(self):
-        maintenant = datetime.now()
-        date = RepublicanDate.from_gregorian(maintenant.date())
-        temp = DecimalTime.from_standard_time(maintenant.time())
+        now = datetime.now()
+        date = RepublicanDate.from_gregorian(now.date())
+        temp = DecimalTime.from_standard_time(now.time())
         h, m, s = str(temp).split(':')
-        return f"C'est {h}ʰ {m}ᵐ {s}ˢ, {date}"
+        return f"Now, c'est {h}ʰ {m}ᵐ {s}ˢ, {date}"
